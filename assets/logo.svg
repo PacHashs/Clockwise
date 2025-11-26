@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" width="900" height="220" role="img" aria-label="Clockwise banner logo">
+  <defs>
+    <radialGradient id="rg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#fffe00"/>
+      <stop offset="10%" stop-color="#ffb400"/>
+      <stop offset="25%" stop-color="#ff6b6b"/>
+      <stop offset="40%" stop-color="#d64bd6"/>
+      <stop offset="55%" stop-color="#5b6bff"/>
+      <stop offset="70%" stop-color="#00b4ff"/>
+      <stop offset="85%" stop-color="#19ff9b"/>
+      <stop offset="100%" stop-color="#fffe00"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="accent" x1="0" x2="1">
+      <stop offset="0%" stop-color="#00ADEF"/>
+      <stop offset="100%" stop-color="#0064C8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background rounded banner -->
+  <rect x="6" y="6" width="888" height="208" rx="18" fill="#0b0b0c" />
+
+  <!-- left logo disk -->
+  <g transform="translate(120,110)">
+    <circle r="72" fill="url(#rg)" filter="url(#glow)" />
+    <circle r="56" fill="#0b0b0c" />
+    <path d="M-8,-12 L40,-48 L50,-38 L8,8 A40,40 0 0,1 -8,-12 Z" fill="#ffffff" stroke="#ffffff" stroke-opacity="0.06"/>
+    <circle r="4" fill="#0b0b0c" />
+  </g>
+
+  <!-- text block to the right -->
+  <g transform="translate(240,70)">
+    <text x="0" y="44" font-family="Segoe UI, Roboto, Arial, sans-serif" font-weight="800" font-size="64" fill="#ffffff">Clockwise</text>
+    <text x="0" y="94" font-family="Segoe UI, Roboto, Arial, sans-serif" font-weight="400" font-size="20" fill="#9fbcd9">A small, practical systems language</text>
+  </g>
+
+  <!-- accent bar -->
+  <rect x="0" y="200" width="900" height="16" rx="8" fill="url(#accent)" opacity="0.18" />
+
+</svg>

@@ -1,0 +1,26 @@
+pipeline:
+  build:
+    image: golang:1.20
+    environment:
+      GOPROXY: "https://proxy.golang.org,direct"
+    commands:
+      - echo "running go mod download"
+      - go mod download
+      - echo "running go vet"
+      - go vet ./...
+      - echo "running go test"
+      - go test ./...
+      - echo "building cw"
+      - go build -o bin/cw ./cmd/cw
+      - echo "building cwfmt"
+      - go build -o bin/cwfmt ./cmd/cwfmt
+      - echo "building installer"
+      - go build -o bin/installer ./cmd/installer
+    when:
+      event:
+        - push
+        - pull_request
+
+# The pipeline above is minimal and intended to run on Codeberg's Woodpecker CI
+# (or any Woodpecker-compatible runner). It installs dependencies, runs vet & tests
+# and produces the three primary artifacts (cw, cwfmt, installer) into bin/.
