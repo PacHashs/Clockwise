@@ -1,5 +1,4 @@
 
-
 # Clockwise.  a tiny, practical systems language
 <p align="center">
 	<img src="assets/logo.svg" alt="Clockwise logo" width="420" />
@@ -99,10 +98,10 @@ own small `.cw` files to experiment.
 ### Linux/macOS
 ```bash
 # Download and install
-curl -L https://github.com/your-org/clockwise/releases/latest/download/install.sh | sh
+curl -L https://codeberg.org/clockwise-lang/clockwise/releases/latest/download/install.sh | sh
 
 # Or build from source
-git clone https://github.com/your-org/clockwise
+git clone https://codeberg.org/clockwise-lang/clockwise
 cd clockwise
 go build -o /usr/local/bin/cwc ./cmd/cw
 ```
