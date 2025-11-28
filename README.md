@@ -94,4 +94,5 @@ Repo home (Codeberg):
 - https://codeberg.org/clockwise-lang/clockwise
 
 Support Clockwise development:
-<a href="https://liberapay.com/root"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
+---
+<a href="https://liberapay.com/Listedroot"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
