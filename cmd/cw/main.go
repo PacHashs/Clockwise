@@ -42,9 +42,9 @@ Examples:
 
 var (
 	// These will be set during build with -ldflags
-	version = "dev"
-	commit  = "none"
-	date    = "unknown"
+	version = "dev-45exec"
+	commit  = "2fa843e"
+	date    = "GMT+7"
 )
 
 func main() {

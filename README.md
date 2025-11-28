@@ -1,43 +1,39 @@
-# Clockwise — tiny, practical, and chill
+Clockwise - tiny, practical, and chill
+
 <p align="center">
   <img src="assets/logo.svg" alt="Clockwise logo" width="420" />
-  
 </p>
+
 Thanks for dropping by. Clockwise is a small systems language that stays out of your way. The compiler is written in Go (that's just an implementation detail). After you install Clockwise, you do not need Go to use it or to run the programs you build. Outputs are normal, standalone native binaries. Go is the oven; Clockwise is the cake.
 
+For a better vision and understanding of this language, check out the docs folder - it contains detailed information about the language specification, usage examples, and runtime helpers.
+
 What you get:
-- Minimal language with C-ish vibes and a tiny standard "runtime" (plain Go helpers).
-- Simple tool: `cwc` to build, run, and format.
-- Everything lives here: lexer → parser → checker → codegen → runtime.
-- 30+ built-in runtime helpers for common tasks (HTTP, crypto, compression, file ops, etc).
-- Multi-file project support with import statements.
+- Minimal language with C-ish vibes and a tiny standard runtime (plain Go helpers)
+- Simple tool: cwc to build, run, and format
+- Everything lives here: lexer → parser → checker → codegen → runtime
+- 30+ built-in runtime helpers for common tasks (HTTP, crypto, compression, file ops, etc)
+- Multi-file project support with import statements
 
-## Installation
+Installation
 
-**Windows (one command, no admin):**
-```powershell
+Windows (one command, no admin):
 ./installer.ps1
-```
 
-**Linux:**
-```bash
+Linux:
 git clone https://codeberg.org/clockwise-lang/clockwise.git
 cd clockwise
 bash install.sh
-```
 
-## Quick Start
+Quick Start
 
 Single file:
-```cw
 fn main() -> int {
     Print("Hello Clockwise!\n")
     return 0
 }
-```
 
 Multi-file:
-```cw
 // main.cw
 import "utils.cw";
 
@@ -46,53 +42,47 @@ fn main() -> int {
     Print(message + "\n");
     return 0
 }
-```
 
-```cw
 // utils.cw
 fn greet(name: string) -> string {
     return "Hello, " + name + "!";
 }
-```
 
-## Usage
+Usage
 
-```bash
-# Single file
+Single file:
 cwc build program.cw -o program
 cwc run program.cw
 
-# Multi-file
+Multi-file:
 cwc build main.cw utils.cw -o myapp
 cwc run main.cw utils.cw
 
-# Formatting
+Formatting:
 cwc fmt -w *.cw
-```
 
-## Language Features
+Language Features
 
-- **C-like syntax** - `var name: type = value` declarations
-- **Type-safe** - Explicit types with `int`, `string` 
-- **Functions** - `fn name() -> type { }` syntax
-- **Built-in runtime helpers** - HttpGet(), SHA256Hex(), Print(), etc.
-- **Import statements** - `import "filename.cw"` for multi-file projects
-- **Native binaries** - No runtime, no VM, instant startup
-- **Zero dependencies** - Everything compiled into single executable
+- C-like syntax - var name: type = value declarations
+- Type-safe - Explicit types with int, string
+- Functions - fn name() -> type { } syntax
+- Built-in runtime helpers - HttpGet(), SHA256Hex(), Print(), etc
+- Import statements - import "filename.cw" for multi-file projects
+- Native binaries - No runtime, no VM, instant startup
+- Zero dependencies - Everything compiled into single executable
 
-## Multi-File Projects
+Multi-File Projects
 
 Clockwise supports organizing code across multiple files:
 
-- Import other files: `import "utils.cw"`
-- Compile multiple files: `cwc build main.cw utils.cw helpers.cw`
+- Import other files: import "utils.cw"
+- Compile multiple files: cwc build main.cw utils.cw helpers.cw
 - All functions merged into single binary
 - No external dependencies or package managers
 - Duplicate function names are detected and reported
 
 Repo home (Codeberg):
-- https://codeberg.org/clockwise-lang/clockwise
+https://codeberg.org/clockwise-lang/clockwise
 
 Support Clockwise development:
----
-<a href="https://liberapay.com/Listedroot"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a>
+https://liberapay.com/Listedroot
