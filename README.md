@@ -1,13 +1,13 @@
 
 
-# Clockwise.  a tiny, practical systems language
+# Clockwise — a tiny, practical systems language
 <p align="center">
 	<img src="assets/logo.svg" alt="Clockwise logo" width="420" />
 </p>
-Clockwise is a pragmatic, small systems language focused on readability,
-fast iteration, and practical interoperability. It targets a compact surface
-area so you can ship tiny, self-contained native binaries while leveraging
-the Go toolchain for compilation and cross-compilation.
+Thanks for dropping by! Clockwise is my “keep-it-small” systems language
+project. It stays intentionally tiny so you can read the whole stack in an
+afternoon, ship self-contained native binaries, and still piggyback on the Go
+toolchain for platform builds.
 
 The language is intentionally simple and predictable: a C-like syntax, first-
 class functions, and a small runtime implemented as plain Go helpers you can
@@ -26,26 +26,25 @@ Why Clockwise
 	generated code.
 
 What you'll find here
-- `cmd/` — CLI tools: `cwc` (compiler & toolchain), `installer` (installer builder)
-  - `cwc build` - Compile ClockWise programs
-  - `cwc run` - Compile and run in one step
-  - `cwc fmt` - Format ClockWise source code
-  - `cwc doc` - Generate documentation
-- `lexer/`, `parser/`, `checker/`, `codegen/` — compiler subsystems
-- `runtime/` — Go-based runtime helpers (printing, fs, strings, crypto, net, math, time, and many small utilities)
+- `cmd/` — CLI tools: `cwc` (compiler/toolchain), `cwfmt`, `cwdoc`, `installer`
+  - `cwc build|run|fmt` for the usual workflow
+  - `cwdoc` for fast Markdown/HTML/JSON docs out of your `.cw` files
+  - `installer` for building the Windows CLI installer
+- `lexer/`, `parser/`, `checker/`, `codegen/` — compiler internals
+- `runtime/` — plain-Go helper libs pulled into generated code
 - `docs/` — language spec, usage, and contributing notes
 
 Quick start (you only need Go):
 
 Windows PowerShell:
 ```powershell
-# Build the compiler and tools
+# Build the compiler and tools (if you want the DIY route)
 cd C:\path\to\ClockWise
 go build -o bin\cwc.exe ./cmd/cw
 
-# Or use the installer for system-wide installation
-.\build_installer.ps1
-bin\installer.exe --bootstrap
+# Or grab the ready-to-run installer (CLI)
+# 1. Download the latest release artifact (or run .\build_installer.ps1)
+# 2. Run bin\cw-windows-amd64.exe
 ```
 
 Linux/macOS:
@@ -92,14 +91,19 @@ own small `.cw` files to experiment.
 ## Installation
 
 ### Windows
-1. Download the latest installer from the releases page
-2. Run the installer with administrative privileges
-3. The installer will add `cwc` to your system PATH
+1. Download `cw-windows-amd64.exe` from the releases tab
+   (or build with `./build_installer.ps1`, artifact in `bin\cw-windows-amd64.exe`).
+2. Per-user install (recommended, no admin):
+   - Run: `bin\cw-windows-amd64.exe --dir "%LOCALAPPDATA%\Programs\Clockwise"`
+3. System-wide install (admin):
+   - Run in an elevated PowerShell: `bin\cw-windows-amd64.exe --system --dir "C:\\Program Files\\Clockwise"`
+4. The installer copies `cw.exe`, updates your user PATH, and creates a Start Menu shortcut.
+   If no bundled `cw.exe` is found, it automatically downloads the latest release.
 
 ### Linux/macOS
 ```bash
-# Download and install
-curl -L https://github.com/your-org/clockwise/releases/latest/download/install.sh | sh
+# Download and install (Linux)
+curl -fsSL https://raw.githubusercontent.com/your-org/clockwise/refs/heads/main/installer.sh | bash
 
 # Or build from source
 git clone https://github.com/your-org/clockwise
@@ -107,22 +111,35 @@ cd clockwise
 go build -o /usr/local/bin/cwc ./cmd/cw
 ```
 
-### Building the Installer (Developers)
+### Building the installer yourself
 From the repo root:
 
 Windows PowerShell:
 ```powershell
 ./build_installer.ps1
-# Produces `bin\installer.exe`
+# Produces `bin\cw-windows-amd64.exe`
 ```
 
 Linux/macOS:
 ```bash
-./build_installer.sh
-# Produces `bin/installer`
+# (On Linux/macOS we don’t ship a GUI installer yet; use the scripts above.)
 ```
 
-The installer can bootstrap the entire toolchain with the `--bootstrap` flag.
+Installer flags (Windows):
+- `--dir <path>` Install directory. Defaults to per-user `%LOCALAPPDATA%\Programs\Clockwise`.
+- `--system` Install to Program Files (requires admin; triggers a one-time elevation).
+- `--binary <path>` Use a specific `cw.exe`. If omitted, installer looks for a bundled binary or downloads the latest release.
+
+### Documentation generation
+
+`cwdoc` scans `.cw` files and spits out Markdown, HTML, or JSON summaries—you
+can run it over your project like this:
+
+```bash
+cwdoc -dir ./examples -output docs/cwdoc -format markdown
+```
+
+Use `-single` if you prefer one combined file.
 
 
 Donations
@@ -143,4 +160,5 @@ Getting involved
 See `docs/CONTRIBUTING.md` for how to file issues and contribute code. If you want new runtime helpers,
 add them under `runtime/` (they're plain Go files and will be merged into generated modules).
 
-Questions or want a feature fast? Open an issue or drop a PR . I try to keep changes small and testable.
+Questions or want a feature fast? Open an issue or drop a PR—I try to keep
+changes small, readable, and testable.
