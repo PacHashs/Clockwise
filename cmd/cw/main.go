@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -389,50 +390,113 @@ func copyDir(src string, dst string) error {
     return nil
 }
 
-// updateCmd updates Clockwise from the remote repository
+// updateCmd updates the installed Clockwise binary from the remote repository
 func updateCmd() {
-	fmt.Println("Updating Clockwise...")
+	fmt.Println("Updating Clockwise binary...")
 	
-	// Get current working directory
-	wd, err := os.Getwd()
+	// Get install directory from PATH or default location
+	installDir := getDefaultInstallDir()
+	if installDir == "" {
+		log.Fatalf("Could not determine Clockwise install directory.")
+	}
+	
+	fmt.Printf("Install directory: %s\n", installDir)
+	
+	// Create temporary directory for download
+	tempDir, err := ioutil.TempDir("", "clockwise-update")
 	if err != nil {
-		log.Fatalf("Failed to get working directory: %v", err)
+		log.Fatalf("Failed to create temp directory: %v", err)
 	}
+	defer os.RemoveAll(tempDir)
 	
-	// Check if we're in a git repository
-	if _, err := os.Stat(filepath.Join(wd, ".git")); os.IsNotExist(err) {
-		log.Fatalf("Not in a git repository. Cannot update.")
-	}
-	
-	// Check if remote is the correct Clockwise repository
-	cmd := exec.Command("git", "remote", "-v")
-	output, err := cmd.Output()
-	if err != nil {
-		log.Fatalf("Failed to check git remotes: %v", err)
-	}
-	
-	if !strings.Contains(string(output), "codeberg.org/clockwise-lang/clockwise") {
-		log.Fatalf("This doesn't appear to be the Clockwise repository.")
-	}
-	
-	// Pull latest changes
-	fmt.Println("Pulling latest changes from repository...")
-	cmd = exec.Command("git", "pull", "origin", "main")
+	// Clone the repository to temp directory
+	fmt.Println("Downloading latest Clockwise...")
+	cmd := exec.Command("git", "clone", "https://codeberg.org/clockwise-lang/clockwise.git", tempDir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("Failed to pull latest changes: %v", err)
+		log.Fatalf("Failed to download Clockwise: %v", err)
 	}
 	
-	// Rebuild the compiler
-	fmt.Println("Rebuilding Clockwise compiler...")
-	cmd = exec.Command("go", "build", "-o", "cwc", "./cmd/cw")
+	// Build the new binary
+	fmt.Println("Building new binary...")
+	cmd = exec.Command("go", "build", "-o", filepath.Join(tempDir, "cw"), "./cmd/cw")
+	cmd.Dir = tempDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("Failed to rebuild compiler: %v", err)
+		log.Fatalf("Failed to build new binary: %v", err)
+	}
+	
+	// Backup current binary
+	currentBinary := filepath.Join(installDir, "cw.exe")
+	backupBinary := filepath.Join(installDir, "cw.exe.backup")
+	if _, err := os.Stat(currentBinary); err == nil {
+		fmt.Println("Backing up current binary...")
+		if err := os.Rename(currentBinary, backupBinary); err != nil {
+			log.Fatalf("Failed to backup current binary: %v", err)
+		}
+	}
+	
+	// Copy new binary to install directory
+	fmt.Println("Installing new binary...")
+	newBinary := filepath.Join(tempDir, "cw")
+	if err := copyFile(newBinary, currentBinary); err != nil {
+		// Restore backup if copy fails
+		if _, err := os.Stat(backupBinary); err == nil {
+			os.Rename(backupBinary, currentBinary)
+		}
+		log.Fatalf("Failed to install new binary: %v", err)
+	}
+	
+	// Create cwc.exe alias
+	cwcBinary := filepath.Join(installDir, "cwc.exe")
+	if err := copyFile(currentBinary, cwcBinary); err != nil {
+		log.Fatalf("Failed to create cwc.exe alias: %v", err)
+	}
+	
+	// Remove backup
+	if _, err := os.Stat(backupBinary); err == nil {
+		os.Remove(backupBinary)
 	}
 	
 	fmt.Println("Clockwise updated successfully!")
 	fmt.Println("Run 'cwc --version' to verify the update.")
+}
+
+// getDefaultInstallDir returns the default Clockwise installation directory
+func getDefaultInstallDir() string {
+	// Check common installation directories
+	candidates := []string{
+		filepath.Join(os.Getenv("LOCALAPPDATA"), "Programs", "Clockwise", "bin"),
+		filepath.Join(os.Getenv("PROGRAMFILES"), "Clockwise", "bin"),
+		"C:\\Clockwise\\bin",
+	}
+	
+	for _, dir := range candidates {
+		if _, err := os.Stat(dir); err == nil {
+			return dir
+		}
+	}
+	
+	// If no existing install found, return default
+	return filepath.Join(os.Getenv("LOCALAPPDATA"), "Programs", "Clockwise", "bin")
+}
+
+// copyFile copies a file from src to dst
+func copyFile(src, dst string) error {
+	source, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+	
+	destination, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	
+	_, err = io.Copy(destination, source)
+	return err
 }
