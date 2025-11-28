@@ -19,11 +19,11 @@ What you get:
 ./installer.ps1
 ```
 
-**Everyone else:**
+**Linux:**
 ```bash
 git clone https://codeberg.org/clockwise-lang/clockwise.git
 cd clockwise
-go build -o bin/cwc ./cmd/cw
+bash install.sh
 ```
 
 ## Quick Start
