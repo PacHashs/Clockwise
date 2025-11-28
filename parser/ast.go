@@ -7,6 +7,14 @@ type Program struct {
     Imports   []string
 }
 
+func (p *Program) Children() []Node {
+    out := make([]Node, 0, len(p.Functions))
+    for _, fn := range p.Functions {
+        out = append(out, fn)
+    }
+    return out
+}
+
 // Node is a generic AST node used by helpers and visitors.
 type Node interface{
     Children() []Node

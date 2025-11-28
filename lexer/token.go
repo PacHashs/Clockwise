@@ -49,6 +49,7 @@ const (
     WHILE    TokenType = "WHILE"
     TRUE     TokenType = "TRUE"
     FALSE    TokenType = "FALSE"
+    IMPORT   TokenType = "IMPORT"
 )
 
 var keywords = map[string]TokenType{
@@ -60,6 +61,7 @@ var keywords = map[string]TokenType{
     "while":  WHILE,
     "true":   TRUE,
     "false":  FALSE,
+    "import": IMPORT,
 }
 
 // LookupIdent checks if an identifier is a reserved keyword

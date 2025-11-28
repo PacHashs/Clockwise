@@ -16,7 +16,7 @@ import (
 
 type Compiler struct {
 	// Configuration
-	InputFile  string
+	InputFiles []string
 	OutputFile string
 	Verbose    bool
 	Optimize   bool
@@ -27,49 +27,77 @@ type Compiler struct {
 }
 
 // NewCompiler creates a new instance of the ClockWise compiler
-func NewCompiler(inputFile, outputFile string) *Compiler {
+func NewCompiler(inputFiles []string, outputFile string) *Compiler {
 	return &Compiler{
-		InputFile:  inputFile,
+		InputFiles: inputFiles,
 		OutputFile: outputFile,
 		Verbose:    false,
 		Optimize:   true,
 	}
 }
 
-// Compile compiles the input file to the output file
+// NewSingleFileCompiler creates a compiler for a single input file (backward compatibility)
+func NewSingleFileCompiler(inputFile, outputFile string) *Compiler {
+	return NewCompiler([]string{inputFile}, outputFile)
+}
+
+// Compile compiles the input files to the output file
 func (c *Compiler) Compile() error {
-	// 1. Read input file
-	src, err := ioutil.ReadFile(c.InputFile)
-	if err != nil {
-		return fmt.Errorf("failed to read input file: %w", err)
+	if len(c.InputFiles) == 0 {
+		return fmt.Errorf("no input files specified")
 	}
 
-	// 2. Lexical analysis
-	l := lexer.New(string(src))
-	tokens := l.Tokenize()
+	// Create a module to hold all files
+	module := parser.NewModule("main")
 
-	// 3. Parsing
-	p := parser.New(tokens)
-	program, err := p.ParseProgram()
-	if err != nil {
-		return fmt.Errorf("parse error: %w", err)
+	// Process each input file
+	for _, inputFile := range c.InputFiles {
+		if c.Verbose {
+			fmt.Printf("Processing file: %s\n", inputFile)
+		}
+
+		// 1. Read input file
+		src, err := ioutil.ReadFile(inputFile)
+		if err != nil {
+			return fmt.Errorf("failed to read input file %s: %w", inputFile, err)
+		}
+
+		// 2. Lexical analysis
+		l := lexer.New(string(src))
+		tokens := l.Tokenize()
+
+		// 3. Parsing
+		p := parser.New(tokens)
+		program, err := p.ParseProgram()
+		if err != nil {
+			return fmt.Errorf("parse error in %s: %w", inputFile, err)
+		}
+
+		// 4. Add file to module
+		module.AddFile(program)
 	}
 
-	// 4. Semantic analysis
-	if err := checker.CheckProgram(program); err != nil {
+	// 5. Resolve imports and create unified program
+	unifiedProgram, err := c.resolveImports(module)
+	if err != nil {
+		return fmt.Errorf("import resolution failed: %w", err)
+	}
+
+	// 6. Semantic analysis
+	if err := checker.CheckProgram(unifiedProgram); err != nil {
 		return fmt.Errorf("semantic error: %w", err)
 	}
 
-	// 5. Code generation
-	goCode := codegen.Generate(program)
+	// 7. Code generation
+	goCode := codegen.Generate(unifiedProgram)
 
-	// 6. Format the generated Go code
+	// 8. Format the generated Go code
 	formatted, err := format.Source([]byte(goCode))
 	if err != nil {
 		return fmt.Errorf("failed to format generated code: %w", err)
 	}
 
-	// 7. Write output file
+	// 9. Write output file
 	if err := os.MkdirAll(filepath.Dir(c.OutputFile), 0755); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
@@ -78,7 +106,59 @@ func (c *Compiler) Compile() error {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
+	if c.Verbose {
+		fmt.Printf("Successfully compiled %d files to %s\n", len(c.InputFiles), c.OutputFile)
+	}
+
 	return nil
+}
+
+// resolveImports resolves imports across all files in the module and creates a unified program
+func (c *Compiler) resolveImports(module *parser.Module) (*parser.Program, error) {
+	// Start with an empty program
+	unifiedProgram := &parser.Program{
+		Imports:   []string{},
+		Functions: []*parser.Function{},
+	}
+	
+	// Track all function names to detect duplicates
+	functionNames := make(map[string]bool)
+	
+	// Process each file in the module
+	for _, fileNode := range module.Files {
+		program, ok := fileNode.(*parser.Program)
+		if !ok {
+			return nil, fmt.Errorf("invalid file node type in module")
+		}
+		
+		// Check for duplicate function names
+		for _, fn := range program.Functions {
+			if functionNames[fn.Name] {
+				return nil, fmt.Errorf("duplicate function name '%s' found in multiple files", fn.Name)
+			}
+			functionNames[fn.Name] = true
+		}
+		
+		// Merge imports
+		for _, imp := range program.Imports {
+			// Check if import already exists
+			found := false
+			for _, existing := range unifiedProgram.Imports {
+				if existing == imp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				unifiedProgram.Imports = append(unifiedProgram.Imports, imp)
+			}
+		}
+		
+		// Merge functions
+		unifiedProgram.Functions = append(unifiedProgram.Functions, program.Functions...)
+	}
+	
+	return unifiedProgram, nil
 }
 
 // addLexerErrors adds lexer errors to the compiler's error list

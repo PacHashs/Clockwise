@@ -76,7 +76,8 @@ func buildCmd() {
 	outputFile := fs.String("o", "", "Output file (default: input filename without extension)")
 	verbose := fs.Bool("v", false, "Enable verbose output")
 	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: cwc build [input.cw] [-o output]\n")
+		fmt.Fprintf(os.Stderr, "Usage: cwc build [input1.cw input2.cw ...] [-o output]\n")
+		fmt.Fprintf(os.Stderr, "  If multiple input files are provided, they will be compiled together.\n")
 		fs.PrintDefaults()
 	}
 
@@ -85,21 +86,25 @@ func buildCmd() {
 		log.Fatalf("Error parsing flags: %v", err)
 	}
 
-	// Get input file
+	// Get input files
 	args := fs.Args()
 	if len(args) == 0 {
 		fs.Usage()
 		os.Exit(1)
 	}
-	inputFile := args[0]
+	inputFiles := args
 
 	// Set default output file if not specified
 	if *outputFile == "" {
-		*outputFile = strings.TrimSuffix(inputFile, filepath.Ext(inputFile))
+		if len(inputFiles) == 1 {
+			*outputFile = strings.TrimSuffix(inputFiles[0], filepath.Ext(inputFiles[0]))
+		} else {
+			*outputFile = "program" // default for multi-file compilation
+		}
 	}
 
 	// Run the compiler
-	comp := cwcompiler.NewCompiler(inputFile, *outputFile)
+	comp := cwcompiler.NewCompiler(inputFiles, *outputFile)
 	comp.Verbose = *verbose
 
 	if err := comp.Compile(); err != nil {
@@ -111,7 +116,9 @@ func runCmd() {
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
 	verbose := fs.Bool("v", false, "Enable verbose output")
 	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: cwc run [input.cw] [args...]\n")
+		fmt.Fprintf(os.Stderr, "Usage: cwc run [input1.cw input2.cw ...] [-- program args...]\n")
+		fmt.Fprintf(os.Stderr, "  If multiple input files are provided, they will be compiled together.\n")
+		fmt.Fprintf(os.Stderr, "  Use '--' to separate Clockwise files from program arguments.\n")
 		fs.PrintDefaults()
 	}
 
@@ -120,16 +127,33 @@ func runCmd() {
 		log.Fatalf("Error parsing flags: %v", err)
 	}
 
-	if len(fs.Args()) == 0 {
+	args := fs.Args()
+	if len(args) == 0 {
 		fs.Usage()
 		os.Exit(1)
 	}
 
-	inputFile := fs.Args()[0]
-	tempExe := filepath.Join(os.TempDir(), "cwc-run-*"+filepath.Ext(inputFile))
+	// Separate input files from program arguments
+	var inputFiles []string
+	var programArgs []string
+	seenDoubleDash := false
+	
+	for _, arg := range args {
+		if arg == "--" {
+			seenDoubleDash = true
+			continue
+		}
+		if seenDoubleDash {
+			programArgs = append(programArgs, arg)
+		} else {
+			inputFiles = append(inputFiles, arg)
+		}
+	}
+
+	tempExe := filepath.Join(os.TempDir(), "cwc-run-*")
 
 	// Compile to temp file
-	comp := cwcompiler.NewCompiler(inputFile, tempExe)
+	comp := cwcompiler.NewCompiler(inputFiles, tempExe)
 	comp.Verbose = *verbose
 
 	if err := comp.Compile(); err != nil {
@@ -137,7 +161,7 @@ func runCmd() {
 	}
 
 	// Run the compiled program
-	cmd := exec.Command(tempExe, fs.Args()[1:]...)
+	cmd := exec.Command(tempExe, programArgs...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

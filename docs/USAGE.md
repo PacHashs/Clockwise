@@ -26,19 +26,19 @@ go build -o bin/cwc ./cmd/cw
 
 #### Using Installer (Windows)
 ```powershell
-# Build the installer
-.\build_installer.ps1
-
-# Run the installer (requires admin)
-bin\installer.exe --bootstrap
+# Easiest: run the bootstrap installer script (per-user, no admin)
+./installer.ps1
 ```
 
 ## Basic Commands
 
 ### Building Programs
 ```bash
-# Build a program
+# Build a single file program
 cwc build program.cw -o program
+
+# Build multi-file program
+cwc build main.cw utils.cw helpers.cw -o myapp
 
 # Build with debug information
 cwc build -d program.cw -o debug_program
@@ -46,12 +46,51 @@ cwc build -d program.cw -o debug_program
 
 ### Running Programs
 ```bash
-# Compile and run in one step
+# Compile and run single file in one step
 cwc run program.cw
 
-# Pass command-line arguments
-cwc run program.cw --arg1 value1
+# Compile and run multi-file program
+cwc run main.cw utils.cw
+
+# Pass command-line arguments (use -- to separate files from args)
+cwc run program.cw -- arg1 value1
+cwc run main.cw utils.cw -- --program-flag value
 ```
+
+### Multi-File Projects
+
+Clockwise supports organizing code across multiple files using import statements:
+
+#### Import Syntax
+```cw
+// Import another Clockwise file
+import "utils.cw";
+
+fn main() -> int {
+    var result: string = greet("World");
+    Print(result + "\n");
+    return 0;
+}
+```
+
+#### Multi-File Compilation
+```bash
+# Compile multiple files together
+cwc build main.cw utils.cw helpers.cw -o application
+
+# Run multiple files together
+cwc run main.cw utils.cw helpers.cw
+
+# All functions from all files are merged into a single binary
+# No external dependencies are created
+```
+
+#### Rules and Limitations
+- Import statements use relative file paths with `.cw` extension
+- All functions from imported files are available globally
+- Duplicate function names across files are detected as errors
+- No circular imports allowed
+- All files are compiled into a single executable
 
 ### Code Formatting
 ```bash
@@ -87,6 +126,11 @@ Common helpers (examples)
 - `NowISO()` / `SleepMs(ms int)` — time helpers
 - `HttpGet(url string) string` — simple HTTP helper
 - `SHA256Hex(s string) string` — cryptographic helper
+- `Gzip(s string) string` / `Gunzip(b64 string) string` — gzip to base64 and back
+- `HMACSHA256(key, data string) string` — hex-encoded HMAC-SHA256
+- `CRC32Hex(s string) string` — hex-encoded CRC32
+- `URLEncode(s string) string` / `URLDecode(s string) string` — percent-encode/decode
+- `CreateTemp(prefix string) string` / `WriteTemp(prefix, data string) string` / `Remove(path string) int` — temp file helpers
 
 More helpers live under `runtime/` (examples: `environs`, `metriclib`, `complib`, `urllib`, `uuidlib`, `stringx`). Call them directly from your `.cw` code once compiled.
 

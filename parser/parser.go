@@ -38,6 +38,14 @@ func (p *Parser) expect(tt lexer.TokenType) (lexer.Token, error) {
 func (p *Parser) ParseProgram() (*Program, error) {
     prog := &Program{}
     for p.cur().Type != lexer.EOF {
+        if p.cur().Type == lexer.IMPORT {
+            importPath, err := p.parseImport()
+            if err != nil {
+                return nil, err
+            }
+            prog.Imports = append(prog.Imports, importPath)
+            continue
+        }
         if p.cur().Type == lexer.FUNCTION || p.cur().Type == lexer.IDENT && p.cur().Lit == "fn" {
             fn, err := p.parseFunction()
             if err != nil {
@@ -286,4 +294,27 @@ func (p *Parser) parseExpressionWithPrecedence(precedence int) (Expression, erro
         left = &InfixExpression{Left: left, Operator: opTok.Lit, Right: right}
     }
     return left, nil
+}
+
+// parseImport parses an import statement: import "path/to/file"
+func (p *Parser) parseImport() (string, error) {
+    // expect 'import' keyword
+    if _, err := p.expect(lexer.IMPORT); err != nil {
+        return "", err
+    }
+    
+    // expect string literal with import path
+    if p.cur().Type != lexer.STRING {
+        return "", fmt.Errorf("expected string literal after 'import', got %s", p.cur().Type)
+    }
+    
+    importPath := p.cur().Lit
+    p.next()
+    
+    // expect semicolon
+    if _, err := p.expect(lexer.SEMICOLON); err != nil {
+        return "", err
+    }
+    
+    return importPath, nil
 }

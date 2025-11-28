@@ -9,6 +9,7 @@ This is a short, intentionally minimal spec for the Clockwise language.
 
 2. Top-level
 - Functions: `fn <name>(<params>) -> <type> { ... }`
+- Imports: `import "<filename>.cw";`
 - The entry point is `fn main() -> int` which returns an integer exit code.
 
 3. Types
@@ -22,6 +23,7 @@ This is a short, intentionally minimal spec for the Clockwise language.
   `HttpGet`, `SHA256Hex`). See `docs/USAGE.md` for examples and available helpers.
 
 5. Statements
+- `import "<filename>.cw";` - Import another Clockwise file
 - `var <name>: <type> = <expr>;`
 - `return <expr>;`
 - Expression statements (function calls and side-effecting expressions)
