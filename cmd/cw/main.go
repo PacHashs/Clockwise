@@ -12,8 +12,6 @@ import (
 	"strings"
 
 	"codeberg.org/clockwise-lang/clockwise/cmd/cw/compiler"
-	"codeberg.org/clockwise-lang/clockwise/cmd/cw/formatter"
-	"codeberg.org/clockwise-lang/clockwise/internal/logger"
 )
 
 const (
@@ -154,7 +152,6 @@ func runCmd() {
 func fmtCmd() {
 	fs := flag.NewFlagSet("fmt", flag.ExitOnError)
 	write := fs.Bool("w", false, "write result to (source) file instead of stdout")
-	diff := fs.Bool("d", false, "display diffs instead of rewriting files")
 	fs.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: cwc fmt [flags] [path ...]\n")
 		fs.PrintDefaults()
@@ -166,19 +163,17 @@ func fmtCmd() {
 
 	args := fs.Args()
 	if len(args) == 0 {
-		// Default to current directory
 		args = []string{"."}
 	}
 
 	var files []string
 	for _, arg := range args {
-		fileInfo, err := os.Stat(arg)
+		info, err := os.Stat(arg)
 		if err != nil {
 			log.Printf("Error reading %s: %v", arg, err)
 			continue
 		}
-
-		if fileInfo.IsDir() {
+		if info.IsDir() {
 			dirFiles, err := findCWFiles(arg)
 			if err != nil {
 				log.Printf("Error finding .cw files in %s: %v", arg, err)
@@ -191,8 +186,24 @@ func fmtCmd() {
 	}
 
 	for _, file := range files {
-		if err := processFile(file, *write, *diff); err != nil {
-			log.Printf("Error processing %s: %v", file, err)
+		data, err := ioutil.ReadFile(file)
+		if err != nil {
+			log.Printf("Error reading %s: %v", file, err)
+			continue
+		}
+		// very simple formatter: normalize line endings and trim trailing spaces
+		s := strings.ReplaceAll(string(data), "\r\n", "\n")
+		lines := strings.Split(s, "\n")
+		for i, l := range lines {
+			lines[i] = strings.TrimRight(l, " \t")
+		}
+		out := strings.Join(lines, "\n")
+		if *write {
+			if err := ioutil.WriteFile(file, []byte(out), 0644); err != nil {
+				log.Printf("Error writing %s: %v", file, err)
+			}
+		} else {
+			fmt.Print(out)
 		}
 	}
 }
@@ -212,32 +223,11 @@ func findCWFiles(dir string) ([]string, error) {
 	return files, err
 }
 
-func processFile(filename string, write, showDiff bool) error {
-	src, err := ioutil.ReadFile(filename)
+func printUsage(err error) {
 	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 	}
-
-	res, err := formatter.Format(src)
-	if err != nil {
-		return fmt.Errorf("formatting %s: %v", filename, err)
-	}
-
-	if bytes.Equal(src, res) {
-		return nil // No changes
-	}
-
-	if showDiff {
-		diff, err := diff(src, res, filename)
-		if err != nil {
-			return fmt.Errorf("computing diff for %s: %v", filename, err)
-		}
-		fmt.Printf("diff %s cw/fmt/%s\n", filename, filename)
-		fmt.Printf("--- %s\n", filename)
-		fmt.Printf("+++ cw/fmt/%s\n", filename)
-		os.Stdout.Write(diff)
-		return nil
-	}
+	fmt.Fprintf(os.Stderr, "%s\n", appDescription)
 
 	if !write {
 		_, err = os.Stdout.Write(res)
