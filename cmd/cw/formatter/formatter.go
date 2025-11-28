@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"codeberg.org/clockwise-lang/clockwise/ast"
+	"codeberg.org/clockwise-lang/clockwise/parser"
 	"codeberg.org/clockwise-lang/clockwise/lexer"
 	"codeberg.org/clockwise-lang/clockwise/parser"
 )

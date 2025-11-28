@@ -1,7 +1,7 @@
 package formatter
 
 import (
-	"codeberg.org/clockwise-lang/clockwise/ast"
+	"codeberg.org/clockwise-lang/clockwise/parser"
 	"fmt"
 )
 

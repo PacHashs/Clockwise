@@ -99,7 +99,8 @@ if (-not $goInstallOk) {
       # Replace non-existent ast package with parser package
       $t = $t -replace [Regex]::Escape("$ModuleBase/ast"), "$ModuleBase/parser"
       # Remove broken internal/logger import line if present
-      $t = [Regex]::Replace($t, "(?m)^\s*\"$([Regex]::Escape($ModuleBase))/internal/logger\"\s*\r?\n", "")
+      $loggerPattern = '(?m)^\s*"' + [Regex]::Escape($ModuleBase) + '/internal/logger"\s*\r?\n'
+      $t = $t -replace ($loggerPattern), ''
       if ($t -ne $orig) {
         $patchedCount++
         Set-Content -Path $path -NoNewline -Value $t

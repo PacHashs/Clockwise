@@ -46,35 +46,22 @@ func (c *Compiler) Compile() error {
 
 	// 2. Lexical analysis
 	l := lexer.New(string(src))
-	tokens, lexErrs := l.Lex()
-	if len(lexErrs) > 0 {
-		c.addLexerErrors(lexErrs)
-		return c.compileError()
-	}
+	tokens := l.Tokenize()
 
 	// 3. Parsing
 	p := parser.New(tokens)
-	ast, parseErrs := p.Parse()
-	if len(parseErrs) > 0 {
-		c.addParserErrors(parseErrs)
-		return c.compileError()
+	program, err := p.ParseProgram()
+	if err != nil {
+		return fmt.Errorf("parse error: %w", err)
 	}
 
 	// 4. Semantic analysis
-	chk := checker.New()
-	semErrs := chk.Check(ast)
-	if len(semErrs) > 0 {
-		c.addSemanticErrors(semErrs)
-		return c.compileError()
+	if err := checker.CheckProgram(program); err != nil {
+		return fmt.Errorf("semantic error: %w", err)
 	}
 
 	// 5. Code generation
-	gen := codegen.New()
-	goCode, genErrs := gen.Generate(ast)
-	if len(genErrs) > 0 {
-		c.addGenerationErrors(genErrs)
-		return c.compileError()
-	}
+	goCode := codegen.Generate(program)
 
 	// 6. Format the generated Go code
 	formatted, err := format.Source([]byte(goCode))
@@ -95,35 +82,11 @@ func (c *Compiler) Compile() error {
 }
 
 // addLexerErrors adds lexer errors to the compiler's error list
-func (c *Compiler) addLexerErrors(errs []lexer.Error) {
-	for _, err := range errs {
-		c.errors = append(c.errors, fmt.Errorf("lexer error at %d:%d: %s",
-			err.Line, err.Column, err.Msg))
-	}
-}
-
-// addParserErrors adds parser errors to the compiler's error list
-func (c *Compiler) addParserErrors(errs []parser.Error) {
-	for _, err := range errs {
-		c.errors = append(c.errors, fmt.Errorf("parse error at %d:%d: %s",
-			err.Token.Line, err.Token.Column, err.Msg))
-	}
-}
-
-// addSemanticErrors adds semantic analysis errors to the compiler's error list
-func (c *Compiler) addSemanticErrors(errs []checker.Error) {
-	for _, err := range errs {
-		c.errors = append(c.errors, fmt.Errorf("semantic error at %d:%d: %s",
-			err.Node.Pos().Line, err.Node.Pos().Column, err.Msg))
-	}
-}
-
-// addGenerationErrors adds code generation errors to the compiler's error list
-func (c *Compiler) addGenerationErrors(errs []error) {
-	for _, err := range errs {
-		c.errors = append(c.errors, fmt.Errorf("code generation error: %w", err))
-	}
-}
+// legacy error aggregation helpers kept for compatibility but unused
+func (c *Compiler) addLexerErrors(_ interface{})           {}
+func (c *Compiler) addParserErrors(_ interface{})          {}
+func (c *Compiler) addSemanticErrors(_ interface{})        {}
+func (c *Compiler) addGenerationErrors(_ interface{})      {}
 
 // compileError returns a formatted compilation error with all accumulated errors
 func (c *Compiler) compileError() error {
