@@ -27,6 +27,7 @@ Usage:
   cwc build [input.cw] [-o output]
   cwc run [input.cw] [args...]
   cwc fmt [input.cw]
+  cwc --update
   cwc --help | -h
   cwc --version | -v
 
@@ -34,6 +35,7 @@ Examples:
   cwc build program.cw -o program
   cwc run program.cw arg1 arg2
   cwc fmt program.cw
+  cwc --update
   cwc --help`
 )
 
@@ -59,6 +61,8 @@ func main() {
 		runCmd()
 	case "fmt":
 		fmtCmd()
+	case "--update":
+		updateCmd()
 	case "--help", "-h":
 		printUsage(nil)
 		os.Exit(0)
@@ -383,4 +387,52 @@ func copyDir(src string, dst string) error {
         }
     }
     return nil
+}
+
+// updateCmd updates Clockwise from the remote repository
+func updateCmd() {
+	fmt.Println("Updating Clockwise...")
+	
+	// Get current working directory
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get working directory: %v", err)
+	}
+	
+	// Check if we're in a git repository
+	if _, err := os.Stat(filepath.Join(wd, ".git")); os.IsNotExist(err) {
+		log.Fatalf("Not in a git repository. Cannot update.")
+	}
+	
+	// Check if remote is the correct Clockwise repository
+	cmd := exec.Command("git", "remote", "-v")
+	output, err := cmd.Output()
+	if err != nil {
+		log.Fatalf("Failed to check git remotes: %v", err)
+	}
+	
+	if !strings.Contains(string(output), "codeberg.org/clockwise-lang/clockwise") {
+		log.Fatalf("This doesn't appear to be the Clockwise repository.")
+	}
+	
+	// Pull latest changes
+	fmt.Println("Pulling latest changes from repository...")
+	cmd = exec.Command("git", "pull", "origin", "main")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("Failed to pull latest changes: %v", err)
+	}
+	
+	// Rebuild the compiler
+	fmt.Println("Rebuilding Clockwise compiler...")
+	cmd = exec.Command("go", "build", "-o", "cwc", "./cmd/cw")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Fatalf("Failed to rebuild compiler: %v", err)
+	}
+	
+	fmt.Println("Clockwise updated successfully!")
+	fmt.Println("Run 'cwc --version' to verify the update.")
 }
