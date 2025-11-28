@@ -1,8 +1,8 @@
 package formatter
 
 import (
+	"codeberg.org/clockwise-lang/clockwise/ast"
 	"fmt"
-	"github.com/your-org/clockwise/ast"
 )
 
 func (f *Formatter) formatExprStmt(s *ast.ExprStmt) error {

@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/your-org/clockwise/lexer"
-	"github.com/your-org/clockwise/parser"
-	"github.com/your-org/clockwise/checker"
-	"github.com/your-org/clockwise/codegen"
+	"codeberg.org/clockwise-lang/clockwise/checker"
+	"codeberg.org/clockwise-lang/clockwise/codegen"
+	"codeberg.org/clockwise-lang/clockwise/lexer"
+	"codeberg.org/clockwise-lang/clockwise/parser"
 )
 
 type Compiler struct {
@@ -97,7 +97,7 @@ func (c *Compiler) Compile() error {
 // addLexerErrors adds lexer errors to the compiler's error list
 func (c *Compiler) addLexerErrors(errs []lexer.Error) {
 	for _, err := range errs {
-		c.errors = append(c.errors, fmt.Errorf("lexer error at %d:%d: %s", 
+		c.errors = append(c.errors, fmt.Errorf("lexer error at %d:%d: %s",
 			err.Line, err.Column, err.Msg))
 	}
 }
@@ -105,7 +105,7 @@ func (c *Compiler) addLexerErrors(errs []lexer.Error) {
 // addParserErrors adds parser errors to the compiler's error list
 func (c *Compiler) addParserErrors(errs []parser.Error) {
 	for _, err := range errs {
-		c.errors = append(c.errors, fmt.Errorf("parse error at %d:%d: %s", 
+		c.errors = append(c.errors, fmt.Errorf("parse error at %d:%d: %s",
 			err.Token.Line, err.Token.Column, err.Msg))
 	}
 }
@@ -113,7 +113,7 @@ func (c *Compiler) addParserErrors(errs []parser.Error) {
 // addSemanticErrors adds semantic analysis errors to the compiler's error list
 func (c *Compiler) addSemanticErrors(errs []checker.Error) {
 	for _, err := range errs {
-		c.errors = append(c.errors, fmt.Errorf("semantic error at %d:%d: %s", 
+		c.errors = append(c.errors, fmt.Errorf("semantic error at %d:%d: %s",
 			err.Node.Pos().Line, err.Node.Pos().Column, err.Msg))
 	}
 }

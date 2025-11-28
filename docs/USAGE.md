@@ -12,14 +12,14 @@
 
 Windows PowerShell:
 ```powershell
-git clone https://github.com/your-org/clockwise
+git clone https://codeberg.org/clockwise-lang/clockwise.git
 cd clockwise
 go build -o bin\cwc.exe ./cmd/cw
 ```
 
 Linux/macOS:
 ```bash
-git clone https://github.com/your-org/clockwise
+git clone https://codeberg.org/clockwise-lang/clockwise.git
 cd clockwise
 go build -o bin/cwc ./cmd/cw
 ```

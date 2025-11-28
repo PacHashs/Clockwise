@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/your-org/clockwise/cmd/cw/formatter"
-	"github.com/your-org/clockwise/cmd/cw/compiler"
-	"github.com/your-org/clockwise/internal/logger"
+	"codeberg.org/clockwise-lang/clockwise/cmd/cw/compiler"
+	"codeberg.org/clockwise-lang/clockwise/cmd/cw/formatter"
+	"codeberg.org/clockwise-lang/clockwise/internal/logger"
 )
 
 const (

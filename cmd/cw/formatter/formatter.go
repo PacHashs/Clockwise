@@ -7,9 +7,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/your-org/clockwise/ast"
-	"github.com/your-org/clockwise/lexer"
-	"github.com/your-org/clockwise/parser"
+	"codeberg.org/clockwise-lang/clockwise/ast"
+	"codeberg.org/clockwise-lang/clockwise/lexer"
+	"codeberg.org/clockwise-lang/clockwise/parser"
 )
 
 type Formatter struct {

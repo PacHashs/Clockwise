@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RELEASE_URL="https://github.com/your-org/clockwise/releases/latest/download/cw-linux-amd64.tar.gz"
+RELEASE_URL="https://codeberg.org/clockwise-lang/clockwise/releases/download/latest/cw-linux-amd64.tar.gz"
 INSTALL_DIR="/usr/local/bin"
 TEMP_DIR=$(mktemp -d)
 
